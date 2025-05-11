@@ -66,9 +66,9 @@ wheels/
 .DS_Store
 
 # Terraform files
-terraform
 terraform.tfstate
 terraform.tfvars
+variables.tf
 .terraform/
 
 # Dependency directories
