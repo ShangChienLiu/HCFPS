@@ -1,0 +1,102 @@
+# Python virtual environments
+venv/
+env/
+.venv
+.env
+.python-version
+
+# Logs
+logs/
+!logs/README.md
+!logs/.gitignore
+*.log
+*.log.*
+
+# Private keys and credentials
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.der
+*.cer
+*credentials*.json
+*serviceaccount*.json
+*key.json
+*_rsa
+*id_dsa
+.env
+.aws/
+.gcp/
+.config/gcloud/
+
+# Docker build intermediate files
+docker-compose.override.yml
+docker-build-*/
+.dockerignore
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Terraform files
+terraform
+terraform.tfstate
+terraform.tfvars
+.terraform/
+
+# Dependency directories
+node_modules/
+jspm_packages/
+bower_components/
+
+# Coverage and test reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+#data
+data-examples/
+
+#note
+note/
+
+#config
+config/
+
+#key
+keys/

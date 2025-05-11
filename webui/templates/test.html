@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test Page</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; }
+        h1 { color: #333; }
+        .test-section { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        button { padding: 8px 12px; background: #4361ee; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        input, textarea { padding: 8px; width: 100%; margin-bottom: 10px; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 4px; max-height: 200px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>API Connectivity Test Page</h1>
+    
+    <div class="test-section">
+        <h2>1. Basic GET Request</h2>
+        <button id="test-get">Test GET /health</button>
+        <pre id="get-result">Results will appear here...</pre>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Debug Endpoint</h2>
+        <button id="test-debug">Test POST /api/debug</button>
+        <pre id="debug-result">Results will appear here...</pre>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Validate Path Endpoint</h2>
+        <input type="text" id="path-input" value="s3://test-bucket/test-file.txt" placeholder="Enter path (e.g., s3://bucket/key)">
+        <button id="test-validate">Test POST /api/validate_path</button>
+        <pre id="validate-result">Results will appear here...</pre>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Manual HTTP Request Test</h2>
+        <select id="http-method">
+            <option value="GET">GET</option>
+            <option value="POST" selected>POST</option>
+        </select>
+        <input type="text" id="url-input" value="/api/validate_path" placeholder="Enter URL (e.g., /api/validate_path)">
+        <textarea id="request-body" rows="5" placeholder='Enter JSON request body (e.g., {"path": "s3://bucket/key"})'>{
+  "path": "s3://test-bucket/test-file.txt",
+  "checkBucketOnly": false
+}</textarea>
+        <button id="send-request">Send Request</button>
+        <pre id="request-result">Results will appear here...</pre>
+    </div>
+
+    <script>
+        // Helper function to display results
+        function displayResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            if (isError) {
+                element.innerHTML = `<span style="color:red">ERROR: ${data}</span>`;
+            } else {
+                element.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+            }
+        }
+
+        // Test 1: Basic GET request
+        document.getElementById('test-get').addEventListener('click', async () => {
+            try {
+                displayResult('get-result', 'Sending request...');
+                const response = await fetch('/health');
+                const data = await response.json();
+                displayResult('get-result', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data
+                });
+            } catch (error) {
+                displayResult('get-result', error.message, true);
+            }
+        });
+
+        // Test 2: Debug endpoint
+        document.getElementById('test-debug').addEventListener('click', async () => {
+            try {
+                displayResult('debug-result', 'Sending request...');
+                const response = await fetch('/api/debug', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ test: true, timestamp: Date.now() })
+                });
+                const data = await response.json();
+                displayResult('debug-result', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data
+                });
+            } catch (error) {
+                displayResult('debug-result', error.message, true);
+            }
+        });
+
+        // Test 3: Validate path endpoint
+        document.getElementById('test-validate').addEventListener('click', async () => {
+            try {
+                const path = document.getElementById('path-input').value;
+                displayResult('validate-result', `Sending request for path: ${path}...`);
+                
+                const response = await fetch('/api/validate_path', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: path })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayResult('validate-result', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        data: data
+                    });
+                } else {
+                    let errorText;
+                    try {
+                        errorText = await response.text();
+                    } catch (e) {
+                        errorText = 'Could not read response body';
+                    }
+                    displayResult('validate-result', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        error: errorText
+                    });
+                }
+            } catch (error) {
+                displayResult('validate-result', error.message, true);
+            }
+        });
+
+        // Test 4: Manual HTTP request
+        document.getElementById('send-request').addEventListener('click', async () => {
+            try {
+                const method = document.getElementById('http-method').value;
+                const url = document.getElementById('url-input').value;
+                const body = document.getElementById('request-body').value;
+                
+                displayResult('request-result', `Sending ${method} request to ${url}...`);
+                
+                const options = {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                
+                if (method !== 'GET' && body) {
+                    try {
+                        options.body = body.trim();
+                        // Validate JSON
+                        JSON.parse(options.body);
+                    } catch (e) {
+                        displayResult('request-result', `Invalid JSON: ${e.message}`, true);
+                        return;
+                    }
+                }
+                
+                const response = await fetch(url, options);
+                
+                let responseData;
+                try {
+                    responseData = await response.json();
+                } catch (e) {
+                    responseData = await response.text();
+                }
+                
+                displayResult('request-result', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: Object.fromEntries([...response.headers.entries()]),
+                    data: responseData
+                });
+            } catch (error) {
+                displayResult('request-result', error.message, true);
+            }
+        });
+    </script>
+</body>
+</html> 

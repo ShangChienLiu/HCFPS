@@ -1,0 +1,16 @@
+services:
+  processor-app:
+    build:
+      context: .
+    image: processor-app
+    container_name: processor-app
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./processor:/app/processor
+      - ./app.py:/app/app.py
+      - ../config/app_config.yaml:/app/config/app_config.yaml:ro
+      - ./logs:/app/logs
+      - ../config/terraform-gcp-key.json:/app/keys/gcp-key.json:ro

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Processor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Simple reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #333;
+            background-color: #f8f9fa;
+            padding: 15px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        h1 {
+            color: #4361ee;
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        /* Table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        thead {
+            background-color: #f1f3f5;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        th {
+            text-align: left;
+            padding: 8px 10px;
+            font-weight: 500;
+            color: #495057;
+            font-size: 13px;
+        }
+        
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: middle;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .col-source {
+            width: 35%;
+        }
+        
+        .col-action {
+            width: 15%;
+        }
+        
+        .col-output {
+            width: 35%;
+        }
+        
+        .col-status {
+            width: 10%;
+        }
+        
+        .col-delete {
+            width: 5%;
+        }
+        
+        /* Form elements */
+        select, input[type="text"] {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        select:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #4361ee;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 8px;
+        }
+        
+        .radio-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .radio-label input {
+            margin-right: 5px;
+        }
+        
+        .file-input {
+            position: relative;
+            display: flex;
+            margin-bottom: 8px;
+        }
+        
+        .file-input-button {
+            padding: 6px 8px;
+            background: #e9ecef;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-grow: 1;
+        }
+        
+        .file-input input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        /* File upload container styling */
+        .file-upload-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .file-upload-container select {
+            margin-top: 3px;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-primary {
+            background: #4361ee;
+            color: white;
+        }
+        
+        .btn-outline {
+            background: white;
+            border: 1px solid #ced4da;
+            color: #495057;
+        }
+        
+        .btn-icon {
+            padding: 6px;
+            border-radius: 4px;
+            border: none;
+            color: #e63946;
+            background: transparent;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .btn-icon:hover {
+            background: #f8d7da;
+        }
+        
+        /* Alerts */
+        .alert {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Utils */
+        .hidden {
+            display: none !important;
+        }
+        
+        .help-text {
+            background-color: #e7f5ff;
+            border-left: 3px solid #4361ee;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+        }
+        
+        .help-text h3 {
+            margin-bottom: 5px;
+            color: #4361ee;
+            font-size: 15px;
+        }
+        
+        .help-text p {
+            margin-bottom: 5px;
+        }
+        
+        /* Action buttons */
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        /* Make the Add Task button more prominent */
+        #add-task-btn {
+            padding: 8px 16px;
+            font-size: 15px;
+            background-color: #f0f4ff;
+            border: 2px solid #4361ee;
+            color: #4361ee;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        #add-task-btn:hover {
+            background-color: #4361ee;
+            color: white;
+        }
+        
+        /* Responsive */
+        @media (max-width: 700px) {
+            .table-container {
+                overflow-x: auto;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+            }
+        }
+        
+        /* Output path validation status */
+        .output-status {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            font-size: 16px;
+        }
+        
+        /* Position relative for output field container */
+        .col-output {
+            position: relative;
+        }
+        
+        /* Cloud Path validation status */
+        .cloud-path-status {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            font-size: 16px;
+        }
+        
+        /* Cloud path input container */
+        .cloud-path-input {
+            position: relative;
+        }
+        
+        /* Status indicators */
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .status-icon {
+            font-size: 16px;
+        }
+        
+        .status-text {
+            font-size: 13px;
+        }
+        
+        .status-pending { color: #f59f00; }
+        .status-running { color: #4361ee; }
+        .status-success { color: #40c057; }
+        .status-error { color: #e03131; }
+        
+        /* Overall status div */
+        .overall-status {
+            background-color: #e9ecef;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-weight: 500;
+            color: #495057;
+            text-align: center;
+        }
+        
+        /* Validation error messages */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>File Processor</h1>
+                <p>Process files across AWS and Google Cloud</p>
+            </div>
+            <div>
+                <button id="submit-all-btn" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> Submit All
+                </button>
+            </div>
+        </div>
+        
+        <div id="alert" class="alert"></div>
+        
+        <div class="help-text">
+            <h3>Quick Guide</h3>
+            <p><strong>File Upload:</strong> Select a file from your device and choose AWS or GCP</p>
+            <p><strong>Cloud Path:</strong> Direct cloud path format - S3: <code>s3://bucket/key</code> or GCS: <code>gs://bucket/object</code></p>
+            <p><strong>Output:</strong> Must be a cloud path starting with s3:// or gs://</p>
+        </div>
+        
+        <div class="table-container">
+            <table id="tasks-table">
+                <thead>
+                    <tr>
+                        <th class="col-source">Source</th>
+                        <th class="col-action">Action</th>
+                        <th class="col-output">Output Path</th>
+                        <th class="col-status">Status</th>
+                        <th class="col-delete"></th>
+                    </tr>
+                </thead>
+                <tbody id="task-container">
+                    <!-- Tasks will be added here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="actions">
+            <button id="add-task-btn" class="btn btn-outline">
+                <i class="fas fa-plus"></i> Add Task
+            </button>
+        </div>
+    </div>
+    
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+    
+    <script>
+        // Global error handler
+        window.onerror = function(message, source, lineno, colno, error) {
+            console.error('Error:', message, 'at', source, 'line', lineno, 'column', colno);
+            console.error('Stack:', error && error.stack);
+            alert('JavaScript error: ' + message);
+            return false;
+        };
+        
+        // Global function to create and add a new task
+        function createAndAddTask() {
+            console.log('Add task button clicked');
+            if (window.createTaskCard && document.getElementById('task-container')) {
+                const newTask = window.createTaskCard();
+                document.getElementById('task-container').appendChild(newTask);
+            } else {
+                console.error('Create task function or container not available');
+                alert('Could not add task. Please check the console for errors.');
+            }
+        }
+    </script>
+    
+    <script src="{{ url_for('static', filename='debug.js') }}"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html> 
